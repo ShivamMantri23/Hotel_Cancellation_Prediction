@@ -7,29 +7,35 @@ from src.evaluate import evaluate_models
 import os
 
 def main():
-    # Setup
-    DATA_PATH = "data/hotel_reservations.csv" # Ensure this matches your file name
+    DATA_PATH = "data/hotel_reservations.csv"
     os.makedirs("outputs", exist_ok=True)
     
     # 1. Load
-    try:
-        df = load_data(DATA_PATH)
-    except Exception as e:
-        print(e)
-        return
+    df = load_data(DATA_PATH)
+    if df is None: return
 
     # 2. EDA
     perform_eda(df)
 
     # 3. Cleaning & Outliers
     df = clean_data(df)
+    print(f"After Cleaning: {df.shape}") # Debug check
+
     df = handle_outliers(df)
+    print(f"After Outliers: {df.shape}") # Debug check
 
     # 4. Feature Engineering
     df = create_features(df)
+    print(f"After Features: {df.shape}") # Debug check
 
     # 5. Encoding
     df = encode_data(df)
+    
+    # *** SAFETY CHECK ***
+    if df is None:
+        print("ERROR: Data became None after encoding! Check preprocess.py")
+        return
+    print(f"After Encoding: {df.shape}") 
 
     # 6. Train
     models, X_test, y_test = train_models(df)
