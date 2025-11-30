@@ -1,5 +1,6 @@
-name: ML Pipeline CI
+name: Hotel Prediction ML Pipeline
 
+# Trigger the workflow on push or pull request to the main branch
 on:
   push:
     branches: [ main ]
@@ -8,33 +9,45 @@ on:
 
 jobs:
   build-and-run:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest  # Uses a Linux virtual machine
 
     steps:
-    - uses: actions/checkout@v3
+    # 1. Check out the code from your repository
+    - name: Checkout code
+      uses: actions/checkout@v3
 
+    # 2. Set up Python environment
     - name: Set up Python 3.9
       uses: actions/setup-python@v4
       with:
         python-version: 3.9
 
+    # 3. Install Dependencies (Task 11 requirement)
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install -r requirements.txt
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
-    # Note: In a real scenario, you wouldn't commit the large CSV.
-    # You would download it here or use DVC. 
-    # For this assignment, we assume the data exists or we mock it.
-    - name: Run Pipeline
+    # 4. Run the Pipeline End-to-End (Task 11 requirement)
+    # This runs your main.py script exactly as you do on your laptop
+    - name: Run ML Pipeline
       run: |
         python main.py
-        
+
+    # 5. Verify Model Saving (Task 11 requirement)
+    # This checks if 'outputs/best_model.pkl' actually exists after running
     - name: Verify Model Artifact
       run: |
         if [ -f "outputs/best_model.pkl" ]; then
-          echo "Model saved successfully."
+          echo "SUCCESS: Model file found!"
         else
-          echo "Model not found!"
+          echo "ERROR: Model file missing!"
           exit 1
         fi
+
+    # Optional: Upload the model so you can download it from GitHub
+    - name: Upload Model Artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: trained-model
+        path: outputs/best_model.pkl
