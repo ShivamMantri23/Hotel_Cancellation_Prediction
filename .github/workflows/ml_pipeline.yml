@@ -1,0 +1,40 @@
+name: ML Pipeline CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-run:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Python 3.9
+      uses: actions/setup-python@v4
+      with:
+        python-version: 3.9
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    # Note: In a real scenario, you wouldn't commit the large CSV.
+    # You would download it here or use DVC. 
+    # For this assignment, we assume the data exists or we mock it.
+    - name: Run Pipeline
+      run: |
+        python main.py
+        
+    - name: Verify Model Artifact
+      run: |
+        if [ -f "outputs/best_model.pkl" ]; then
+          echo "Model saved successfully."
+        else
+          echo "Model not found!"
+          exit 1
+        fi
